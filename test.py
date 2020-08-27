@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 app = Flask(__name__)
 
 from colormath.color_objects import sRGBColor, HSVColor, HSLColor
@@ -14,13 +14,45 @@ LUMINANCE_VARIANCE = 0.05
 
 @app.route("/")
 def index():
-    palettes = generate_palette()
-    table = "<table height=100% width=100%>"
+    table = "<script type='text/javascript'>"
+    table += "function copycell(id){var text = document.getElementById(id); text.select(); text.setSelectionRange(0, 99999); document.execCommand('copy'); alert(text.value);}"
+    #table += 'var cells = table.getElementsByTagName("td"); for (var i = 0; i < cells.length; i++) {    cells[i].onclick = function(){tes();};}'
+    table += "</script>"
+    table += "<table height=100% width=100%>"
+    if request.args.get("hex"):
+        hex_color = request.args.get("hex")
+    else:
+        hex_color = "#ff0000"
+    if request.args.get("hue"):
+        hue = float(request.args.get("hue"))
+    else:
+        hue = HUE_VARIANCE
+    if request.args.get("saturation"):
+        saturation = float(request.args.get("saturation"))
+    else:
+        saturation = SATURATION_VARIANCE
+    if request.args.get("luminance"):
+        luminance = float(request.args.get("luminance"))
+    else:
+        luminance = LUMINANCE_VARIANCE
+
+
+    palettes = generate_palette(hex_color, hue, saturation, luminance)
+    id_counter = 1
     for palette in palettes:
         table += "<tr>"
         for color in palette:
-            table += f"<td align='center' height=33.33% width=14.25% style='background-color: {color};'>{color}</td>"
+            table += f"<td id={id_counter} class='hex-color' onClick='copycell({id_counter});'; align='center' height=33.33% width=14.25% style='background-color: {color};'>{color}</td>"
+            id_counter += 1
         table += "</tr>"
+        
+    table += "<tr height=50><form name='settings'>"
+    table += f"<td><input type='color' id='hex' name='hex' value='{hex_color}'></td>"
+    table += f"<td><label for='Hue Variation'>Hue Variation:</label><input type='number' step='0.01' min='0.01' max='0.1' value={hue} id='hue' name='hue'></td>"
+    table += f"<td><label for='Saturation Variation'>Saturation Variation:</label><input type='number' step='0.01' min='0.01' max='0.1' value={saturation} id='saturation' name='saturation'></td>"
+    table += f"<td><label for='Luminance Variation'>Luminance Variation:</label><input type='number' step='0.01' min='0.02' max='0.1' value={luminance} id='luminance' name='luminance'></td>"
+    table += "<td><input type='submit' value='Submit'></td>"
+    table += "</form></tr>"
     table += "</table>"
     return table
 
@@ -32,11 +64,11 @@ def rotate_hue(_hue, _diff):
         hue += 1.0
     return hue
 
-def generate_palette():
-    base_color = Color("blue")
+def generate_palette(_color, _hue_variance, _saturation_variance, _luminance_variance):
+    base_color = Color(_color)
     palette = [base_color.hex_l]
 
-    print (f"{HUE_VARIANCE} * 3 = {HUE_VARIANCE * 3}")
+    print (f"{_hue_variance} * 3 = {_hue_variance * 3}")
 
     print(base_color.rgb)
     print(base_color.hsl)
@@ -45,16 +77,16 @@ def generate_palette():
 
     for i in range(1, 4):
         new_color = Color(base_color)
-        new_color.hue = rotate_hue(base_color.hue, -(HUE_VARIANCE * i))
-        new_color.saturation = max(0.0, base_color.saturation - (SATURATION_VARIANCE * i))
-        new_color.luminance = max(0.0, base_color.luminance - (LUMINANCE_VARIANCE * i))
+        new_color.hue = rotate_hue(base_color.hue, -(_hue_variance * i))
+        new_color.saturation = max(0.0, base_color.saturation - (_saturation_variance * i))
+        new_color.luminance = max(0.0, base_color.luminance - (_luminance_variance * i))
         palette.append(new_color.hex_l)
 
     for i in range(1, 4):
         new_color = Color(base_color)
-        new_color.hue = rotate_hue(base_color.hue, (HUE_VARIANCE * i))
-        new_color.saturation = min(1.0,base_color.saturation + (SATURATION_VARIANCE * i))
-        new_color.luminance = min(1.0,base_color.luminance + (LUMINANCE_VARIANCE * i))
+        new_color.hue = rotate_hue(base_color.hue, (_hue_variance * i))
+        new_color.saturation = min(1.0,base_color.saturation + (_saturation_variance * i))
+        new_color.luminance = min(1.0,base_color.luminance + (_luminance_variance * i))
         print(new_color.rgb)
         print(new_color.hsl)
         palette.insert(0,new_color.hex_l)
@@ -64,17 +96,17 @@ def generate_palette():
     lighter_palette = []
     for color in palette:
         new_color = Color(color)
-        new_color.hue = rotate_hue(new_color.hue, -(HUE_VARIANCE / 3))
-        new_color.saturation = max(0.0, base_color.saturation - (SATURATION_VARIANCE * i))
-        new_color.luminance = min(1.0,base_color.luminance + (LUMINANCE_VARIANCE * i))
+        new_color.hue = rotate_hue(new_color.hue, -(_hue_variance / 3))
+        new_color.saturation = max(0.0, base_color.saturation - (_saturation_variance * i))
+        new_color.luminance = min(1.0,base_color.luminance + (_luminance_variance * i))
         lighter_palette.append(new_color.hex_l)
 
     darker_palette = []
     for color in palette:
         new_color = Color(color)
-        new_color.hue = rotate_hue(new_color.hue, (HUE_VARIANCE / 3))
-        new_color.saturation = min(1.0, base_color.saturation + (SATURATION_VARIANCE * i))
-        new_color.luminance = max(0.0,base_color.luminance - (LUMINANCE_VARIANCE * i))
+        new_color.hue = rotate_hue(new_color.hue, (_hue_variance / 3))
+        new_color.saturation = min(1.0, base_color.saturation + (_saturation_variance * i))
+        new_color.luminance = max(0.0,base_color.luminance - (_luminance_variance * i))
         darker_palette.append(new_color.hex_l)
 
     palettes = [lighter_palette, palette, darker_palette]
