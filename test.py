@@ -4,18 +4,85 @@ app = Flask(__name__)
 from colormath.color_objects import sRGBColor, HSVColor, HSLColor
 from colormath.color_conversions import convert_color
 
+from colour import Color
+
 # colormath seems bad
+
+HUE_VARIANCE = 0.05
+SATURATION_VARIANCE = 0.05
+LUMINANCE_VARIANCE = 0.05
 
 @app.route("/")
 def index():
-    palette = generate_palette()
-    table = "<table><tr>"
-    for color in palette:
-        table += f"<td style='background-color: {color};'>{color}</td>"
-    table += "</tr></table>"
+    palettes = generate_palette()
+    table = "<table height=100% width=100%>"
+    for palette in palettes:
+        table += "<tr>"
+        for color in palette:
+            table += f"<td align='center' height=33.33% width=14.25% style='background-color: {color};'>{color}</td>"
+        table += "</tr>"
+    table += "</table>"
     return table
 
+def rotate_hue(_hue, _diff):
+    hue = _hue + _diff
+    while hue > 1.0:
+        hue -= 1.0
+    while hue < 0.0:
+        hue += 1.0
+    return hue
+
 def generate_palette():
+    base_color = Color("blue")
+    palette = [base_color.hex_l]
+
+    print (f"{HUE_VARIANCE} * 3 = {HUE_VARIANCE * 3}")
+
+    print(base_color.rgb)
+    print(base_color.hsl)
+
+    print (f"BASE: H={base_color.hue} S={base_color.saturation} L={base_color.luminance}")
+
+    for i in range(1, 4):
+        new_color = Color(base_color)
+        new_color.hue = rotate_hue(base_color.hue, -(HUE_VARIANCE * i))
+        new_color.saturation = max(0.0, base_color.saturation - (SATURATION_VARIANCE * i))
+        new_color.luminance = max(0.0, base_color.luminance - (LUMINANCE_VARIANCE * i))
+        palette.append(new_color.hex_l)
+
+    for i in range(1, 4):
+        new_color = Color(base_color)
+        new_color.hue = rotate_hue(base_color.hue, (HUE_VARIANCE * i))
+        new_color.saturation = min(1.0,base_color.saturation + (SATURATION_VARIANCE * i))
+        new_color.luminance = min(1.0,base_color.luminance + (LUMINANCE_VARIANCE * i))
+        print(new_color.rgb)
+        print(new_color.hsl)
+        palette.insert(0,new_color.hex_l)
+
+    print (palette)
+
+    lighter_palette = []
+    for color in palette:
+        new_color = Color(color)
+        new_color.hue = rotate_hue(new_color.hue, -(HUE_VARIANCE / 3))
+        new_color.saturation = max(0.0, base_color.saturation - (SATURATION_VARIANCE * i))
+        new_color.luminance = min(1.0,base_color.luminance + (LUMINANCE_VARIANCE * i))
+        lighter_palette.append(new_color.hex_l)
+
+    darker_palette = []
+    for color in palette:
+        new_color = Color(color)
+        new_color.hue = rotate_hue(new_color.hue, (HUE_VARIANCE / 3))
+        new_color.saturation = min(1.0, base_color.saturation + (SATURATION_VARIANCE * i))
+        new_color.luminance = max(0.0,base_color.luminance - (LUMINANCE_VARIANCE * i))
+        darker_palette.append(new_color.hex_l)
+
+    palettes = [lighter_palette, palette, darker_palette]
+
+
+    return palettes
+
+def generate_palette_old():
     ###### USE HSV? HSL?
     ## https://python-colormath.readthedocs.io/en/latest/
     ## https://www.youtube.com/watch?v=u5AnzLg1HxY
@@ -74,4 +141,4 @@ def proof_of_concept():
     print (f"NEW: {new_rgb_color.get_rgb_hex()}")
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
