@@ -12,10 +12,12 @@ HUE_VARIANCE = 0.05
 SATURATION_VARIANCE = 0.05
 LUMINANCE_VARIANCE = 0.05
 
+AMOUNT = 0
+
 @app.route("/")
-def index():
+def palette_index():
     table = "<script type='text/javascript'>"
-    table += "function copycell(id){var text = document.getElementById(id); text.select(); text.setSelectionRange(0, 99999); document.execCommand('copy'); alert(text.value);}"
+    table += "function copycell(id){var text = document.getElementById(id).innerHTML; navigator.clipboard.writeText(text);}"
     #table += 'var cells = table.getElementsByTagName("td"); for (var i = 0; i < cells.length; i++) {    cells[i].onclick = function(){tes();};}'
     table += "</script>"
     table += "<table height=100% width=100%>"
@@ -51,6 +53,46 @@ def index():
     table += f"<td><label for='Hue Variation'>Hue Variation:</label><input type='number' step='0.01' min='0.01' max='0.1' value={hue} id='hue' name='hue'></td>"
     table += f"<td><label for='Saturation Variation'>Saturation Variation:</label><input type='number' step='0.01' min='0.01' max='0.1' value={saturation} id='saturation' name='saturation'></td>"
     table += f"<td><label for='Luminance Variation'>Luminance Variation:</label><input type='number' step='0.01' min='0.02' max='0.1' value={luminance} id='luminance' name='luminance'></td>"
+    table += "<td><input type='submit' value='Submit'></td>"
+    table += "</form></tr>"
+    table += "</table>"
+    return table
+
+@app.route("/sub/")
+def subpalette_index():
+    if request.args.get("hex"):
+        hex_color = request.args.get("hex")
+    else:
+        hex_color = "#ff0000"
+    if request.args.get("hue"):
+        hue = float(request.args.get("hue"))
+    else:
+        hue = HUE_VARIANCE
+    if request.args.get("saturation"):
+        saturation = float(request.args.get("saturation"))
+    else:
+        saturation = SATURATION_VARIANCE
+    if request.args.get("luminance"):
+        luminance = float(request.args.get("luminance"))
+    else:
+        luminance = LUMINANCE_VARIANCE
+    if request.args.get("amount"):
+        amount = int(request.args.get("amount"))
+    else:
+        amount = AMOUNT
+
+    palettes = generate_palette(hex_color, hue, saturation, luminance)
+    id_counter = 1
+
+    ## generate subpalettes
+
+    table = "<table height=100% width=100%>"
+    table += "<tr height=50><form name='settings'>"
+    table += f"<td><input type='color' id='hex' name='hex' value='{hex_color}'></td>"
+    table += f"<td><label for='Hue Variation'>Hue Variation:</label><input type='number' step='0.01' min='0.01' max='0.1' value={hue} id='hue' name='hue'></td>"
+    table += f"<td><label for='Saturation Variation'>Saturation Variation:</label><input type='number' step='0.01' min='0.01' max='0.1' value={saturation} id='saturation' name='saturation'></td>"
+    table += f"<td><label for='Luminance Variation'>Luminance Variation:</label><input type='number' step='0.01' min='0.02' max='0.1' value={luminance} id='luminance' name='luminance'></td>"
+    table += f"<td><label for='Number of Colours'>Number of Colours:</label><input type='number' min='0' max='6' value={amount} id='amount' name='amount'></td>"
     table += "<td><input type='submit' value='Submit'></td>"
     table += "</form></tr>"
     table += "</table>"
