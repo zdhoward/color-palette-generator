@@ -5,27 +5,51 @@ app = Flask(__name__)
 
 from colour import Color
 
-HUE_VARIANCE = 0.05
-SATURATION_VARIANCE = 0.05
-LUMINANCE_VARIANCE = 0.05
-
 AMOUNT = 0
 
-HUE_Opts = [0.01, 0.5, 0.75]
-SAT_Opts = [0.01, 0.1, 0.2]
-LUM_Opts = [0.01, 0.05, 0.1]
+HUE_Opts = {"LOW": 0.025, "MEDIUM": 0.05, "HIGH": 0.075}
+SAT_Opts = {"LOW": 0.01, "MEDIUM": 0.1, "HIGH": 0.2}
+LUM_Opts = {"LOW": 0.01, "MEDIUM": 0.05, "HIGH":0.1}
 
+HUE_VARIANCE = HUE_Opts["MEDIUM"]
+SATURATION_VARIANCE = SAT_Opts["MEDIUM"]
+LUMINANCE_VARIANCE = LUM_Opts["MEDIUM"]
 
 def html_form(hex, hue, sat, lum, is_sub=False, amount=0):
     table = "<table class='submit_form' heght=5% width=100%>"
     table += "<tr height=50><form name='settings'>"
-    table += f"<td><input type='color' id='hex' name='hex' value='{hex}'></td>"
-    table += f"<td><label for='Hue Variation'>Hue Variation:</label><input type='number' step='0.01' min='0.01' max='0.1' value={hue} id='hue' name='hue'></td>"
-    table += f"<td><label for='Saturation Variation'>Saturation Variation:</label><input type='number' step='0.01' min='0.01' max='0.1' value={sat} id='saturation' name='saturation'></td>"
-    table += f"<td><label for='Luminance Variation'>Luminance Variation:</label><input type='number' step='0.01' min='0.02' max='0.1' value={lum} id='luminance' name='luminance'></td>"
+    table += f"<td id='color_picker_cell' ><input id='color_picker' type='color' id='hex' name='hex' value='{hex}'></div></td>"
+    
+    #table += f"<td><label for='Hue Variation'>Hue Variation:</label><input type='number' step='0.01' min='0.01' max='0.1' value={hue} id='hue' name='hue'></td>"
+    table += "<td><label for='hue'>Hue Variation</label><select id='hue' class='select-style' name='hue'>"
+    for key in HUE_Opts.keys():
+        selected = ""
+        if HUE_Opts[key] == hue:
+            selected = "selected"
+        table += f"<option value='{HUE_Opts[key]}' {selected}>{key}</option>"
+    table += "</select></td>"
+    
+    #table += f"<td><label for='Saturation Variation'>Saturation Variation:</label><input type='number' step='0.01' min='0.01' max='0.1' value={sat} id='saturation' name='saturation'></td>"
+    table += "<td><label for='saturation'>Saturation Var.</label><select id='saturation' class='select-style' name='saturation'>"
+    for key in SAT_Opts.keys():
+        selected = ""
+        if SAT_Opts[key] == sat:
+            selected = "selected"
+        table += f"<option value='{SAT_Opts[key]}' {selected}>{key}</option>"
+    table += "</select></td>"
+
+    #table += f"<td><label for='Luminance Variation'>Luminance Variation:</label><input type='number' step='0.01' min='0.02' max='0.1' value={lum} id='luminance' name='luminance'></td>"
+    table += "<td><label for='luminance'>Luminance Var.</label><select id='luminance' class='select-style' name='luminance'>"
+    for key in LUM_Opts.keys():
+        selected = ""
+        if LUM_Opts[key] == lum:
+            selected = "selected"
+        table += f"<option value='{LUM_Opts[key]}' {selected}>{key}</option>"
+    table += "</select></td>"
+    
     if is_sub:
         table += f"<td><label for='Number of Palettes'>Number of Palettes:</label><input type='number' min='0' max='6' value={amount} id='amount' name='amount'></td>"
-    table += "<td><input type='submit' value='Submit'></td>"
+    table += "<td><input class='submit_button' type='submit' value='Submit'></td>"
     table += "</form></tr>"
     table += "</table>"
     return table
@@ -33,7 +57,7 @@ def html_form(hex, hue, sat, lum, is_sub=False, amount=0):
 
 def html_palette(hex_color, hue, saturation, luminance):
     palettes = generate_palette(hex_color, hue, saturation, luminance)
-    table = "<table height=95% width=100%>"
+    table = "<table height=90% width=100%>"
     id_counter = 1
     for palette in palettes:
         table += "<tr>"
