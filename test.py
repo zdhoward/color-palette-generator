@@ -9,18 +9,19 @@ AMOUNT = 0
 
 HUE_Opts = {"LOW": 0.025, "MEDIUM": 0.05, "HIGH": 0.075}
 SAT_Opts = {"LOW": 0.01, "MEDIUM": 0.1, "HIGH": 0.2}
-LUM_Opts = {"LOW": 0.01, "MEDIUM": 0.05, "HIGH":0.1}
+LUM_Opts = {"LOW": 0.01, "MEDIUM": 0.05, "HIGH": 0.1}
 
 HUE_VARIANCE = HUE_Opts["MEDIUM"]
 SATURATION_VARIANCE = SAT_Opts["MEDIUM"]
 LUMINANCE_VARIANCE = LUM_Opts["MEDIUM"]
 
+
 def html_form(hex, hue, sat, lum, is_sub=False, amount=0):
     table = "<table class='submit_form' heght=5% width=100%>"
     table += "<tr height=50><form name='settings'>"
     table += f"<td id='color_picker_cell' ><input id='color_picker' type='color' id='hex' name='hex' value='{hex}'></div></td>"
-    
-    #table += f"<td><label for='Hue Variation'>Hue Variation:</label><input type='number' step='0.01' min='0.01' max='0.1' value={hue} id='hue' name='hue'></td>"
+
+    # table += f"<td><label for='Hue Variation'>Hue Variation:</label><input type='number' step='0.01' min='0.01' max='0.1' value={hue} id='hue' name='hue'></td>"
     table += "<td><label for='hue'>Hue Variation</label><select id='hue' class='select-style' name='hue'>"
     for key in HUE_Opts.keys():
         selected = ""
@@ -28,8 +29,8 @@ def html_form(hex, hue, sat, lum, is_sub=False, amount=0):
             selected = "selected"
         table += f"<option value='{HUE_Opts[key]}' {selected}>{key}</option>"
     table += "</select></td>"
-    
-    #table += f"<td><label for='Saturation Variation'>Saturation Variation:</label><input type='number' step='0.01' min='0.01' max='0.1' value={sat} id='saturation' name='saturation'></td>"
+
+    # table += f"<td><label for='Saturation Variation'>Saturation Variation:</label><input type='number' step='0.01' min='0.01' max='0.1' value={sat} id='saturation' name='saturation'></td>"
     table += "<td><label for='saturation'>Saturation Var.</label><select id='saturation' class='select-style' name='saturation'>"
     for key in SAT_Opts.keys():
         selected = ""
@@ -38,7 +39,7 @@ def html_form(hex, hue, sat, lum, is_sub=False, amount=0):
         table += f"<option value='{SAT_Opts[key]}' {selected}>{key}</option>"
     table += "</select></td>"
 
-    #table += f"<td><label for='Luminance Variation'>Luminance Variation:</label><input type='number' step='0.01' min='0.02' max='0.1' value={lum} id='luminance' name='luminance'></td>"
+    # table += f"<td><label for='Luminance Variation'>Luminance Variation:</label><input type='number' step='0.01' min='0.02' max='0.1' value={lum} id='luminance' name='luminance'></td>"
     table += "<td><label for='luminance'>Luminance Var.</label><select id='luminance' class='select-style' name='luminance'>"
     for key in LUM_Opts.keys():
         selected = ""
@@ -46,7 +47,7 @@ def html_form(hex, hue, sat, lum, is_sub=False, amount=0):
             selected = "selected"
         table += f"<option value='{LUM_Opts[key]}' {selected}>{key}</option>"
     table += "</select></td>"
-    
+
     if is_sub:
         table += f"<td><label for='Number of Palettes'>Number of Palettes:</label><input type='number' min='0' max='6' value={amount} id='amount' name='amount'></td>"
     table += "<td><input class='submit_button' type='submit' value='Submit'></td>"
@@ -74,11 +75,22 @@ def html_subpalettes(palette, amount):
     subpalettes = generate_subpalettes(palette, amount)
     page += "<table>"
     id_counter = 1
+    # for subpalette in subpalettes:
+    #    page += "<tr>"
+    #    for color in subpalette:
+    #        page += f"<td id={id_counter} class='hex-color' onClick='copycell({id_counter});'; align='center' height=33.33% width=14.25% style='background-color: {color};'>{color}</td>"
+    #    page += "</tr>"
+
     for subpalette in subpalettes:
-        page += "<tr>"
-        for color in subpalette:
-            page += f"<td id={id_counter} class='hex-color' onClick='copycell({id_counter});'; align='center' height=33.33% width=14.25% style='background-color: {color};'>{color}</td>"
-        page += "</tr>"
+        page += "<table class='subpalette'>"
+        if len(subpalette) == 4:
+            page += f"<tr><td id={id_counter} class='hex-color' onClick='copycell({id_counter}); align='center' height=50% width=50% style='background-color: {subpalette[0]};'>{subpalette[0]}</td>"
+            page += f"<td id={id_counter + 1} class='hex-color' onClick='copycell({id_counter + 1}); align='center' height=50% width=50% style='background-color: {subpalette[1]};'>{subpalette[1]}</td></tr>"
+            page += f"<tr><td id={id_counter + 2} class='hex-color' onClick='copycell({id_counter + 2}); align='center' height=50% width=50% style='background-color: {subpalette[2]};'>{subpalette[2]}</td>"
+            page += f"<td id={id_counter + 3} class='hex-color' onClick='copycell({id_counter + 3}); align='center' height=50% width=50% style='background-color: {subpalette[3]};'>{subpalette[3]}</td>"
+            id_counter += 4
+        page += "</table>"
+
     page += "</table>"
     return page
 
@@ -188,15 +200,6 @@ def generate_palette(_color, _hue_variance, _saturation_variance, _luminance_var
     base_color = Color(_color)
     palette = [base_color.hex_l]
 
-    print(f"{_hue_variance} * 3 = {_hue_variance * 3}")
-
-    print(base_color.rgb)
-    print(base_color.hsl)
-
-    print(
-        f"BASE: H={base_color.hue} S={base_color.saturation} L={base_color.luminance}"
-    )
-
     for i in range(1, 4):
         new_color = Color(base_color)
         new_color.hue = rotate_hue(base_color.hue, -(_hue_variance * i))
@@ -213,11 +216,7 @@ def generate_palette(_color, _hue_variance, _saturation_variance, _luminance_var
             1.0, base_color.saturation + (_saturation_variance * i)
         )
         new_color.luminance = min(1.0, base_color.luminance + (_luminance_variance * i))
-        print(new_color.rgb)
-        print(new_color.hsl)
         palette.insert(0, new_color.hex_l)
-
-    print(palette)
 
     lighter_palette = []
     for color in palette:
