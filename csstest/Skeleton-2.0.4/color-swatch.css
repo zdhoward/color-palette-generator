@@ -1,0 +1,25 @@
+.subpalette {
+    overflow: hidden; 
+    width:30%;
+    height: 150px;
+    /* padding-bottom: 25%;*/
+    padding: 1.4%; 
+    float: left;
+    position: relative;
+}
+
+.color {
+    width: 50%; 
+    height: 50%; 
+    float: left;
+    position: relative; 
+}
+
+.text {
+    vertical-align: middle;
+    text-align: center; 
+}
+
+.container {
+    overflow: hidden;
+}
