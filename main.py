@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 from colour import Color
 
-AMOUNT = 0
+AMOUNT = 4
 
 HUE_Opts = {"LOW": 0.025, "MEDIUM": 0.05, "HIGH": 0.075}
 SAT_Opts = {"LOW": 0.01, "MEDIUM": 0.1, "HIGH": 0.2}
@@ -69,32 +69,6 @@ def html_palette(hex_color, hue, saturation, luminance):
     table += "</table>"
     return table
 
-
-def html_subpalettes(palette, amount):
-    page = ""
-    subpalettes = generate_subpalettes(palette, amount)
-    page += "<table>"
-    id_counter = 1
-    # for subpalette in subpalettes:
-    #    page += "<tr>"
-    #    for color in subpalette:
-    #        page += f"<td id={id_counter} class='hex-color' onClick='copycell({id_counter});'; align='center' height=33.33% width=14.25% style='background-color: {color};'>{color}</td>"
-    #    page += "</tr>"
-
-    for subpalette in subpalettes:
-        page += "<table class='subpalette'>"
-        if len(subpalette) == 4:
-            page += f"<tr><td id={id_counter} class='hex-color' onClick='copycell({id_counter}); align='center' height=50% width=50% style='background-color: {subpalette[0]};'>{subpalette[0]}</td>"
-            page += f"<td id={id_counter + 1} class='hex-color' onClick='copycell({id_counter + 1}); align='center' height=50% width=50% style='background-color: {subpalette[1]};'>{subpalette[1]}</td></tr>"
-            page += f"<tr><td id={id_counter + 2} class='hex-color' onClick='copycell({id_counter + 2}); align='center' height=50% width=50% style='background-color: {subpalette[2]};'>{subpalette[2]}</td>"
-            page += f"<td id={id_counter + 3} class='hex-color' onClick='copycell({id_counter + 3}); align='center' height=50% width=50% style='background-color: {subpalette[3]};'>{subpalette[3]}</td>"
-            id_counter += 4
-        page += "</table>"
-
-    page += "</table>"
-    return page
-
-
 def html_include_js():
     return "<script src='/static/color-generator.js'></script>"
 
@@ -133,47 +107,8 @@ def palette_index():
     page += "</body>"
     return page
 
-
-@app.route("/oldsub/")
-def subpalette_index():
-    if request.args.get("hex"):
-        hex_color = request.args.get("hex")
-    else:
-        hex_color = "#ff0000"
-    if request.args.get("hue"):
-        hue = float(request.args.get("hue"))
-    else:
-        hue = HUE_VARIANCE
-    if request.args.get("saturation"):
-        saturation = float(request.args.get("saturation"))
-    else:
-        saturation = SATURATION_VARIANCE
-    if request.args.get("luminance"):
-        luminance = float(request.args.get("luminance"))
-    else:
-        luminance = LUMINANCE_VARIANCE
-    if request.args.get("amount"):
-        amount = int(request.args.get("amount"))
-    else:
-        amount = AMOUNT
-
-    page = html_include_js()
-    page += html_include_css()
-
-    page += f"<body style='background-color: {hex_color};'>"
-
-    # page += html_palette(hex_color, hue, saturation, luminance)
-
-    ## generate subpalettes
-    palette = generate_palette(hex_color, hue, saturation, luminance)
-    page += new_html_subpalettes(palette, amount)
-    page += html_form(hex_color, hue, saturation, luminance, True, amount)
-    page += "</body>"
-
-    return page
-
 @app.route("/sub/")
-def new_subpalette_index():
+def subpalette_index():
     if request.args.get("hex"):
         hex_color = request.args.get("hex")
     else:
@@ -207,14 +142,14 @@ def new_subpalette_index():
 
     ## generate subpalettes
     palette = generate_palette(hex_color, hue, saturation, luminance)
-    page += new_html_subpalettes(hex_color, palette, amount)
+    page += html_subpalettes(hex_color, palette, amount)
     page += html_form(hex_color, hue, saturation, luminance, True, amount)
     page += "</body>"
     page += "</html>"
 
     return page
 
-def new_html_subpalettes(hex_color, palette, amount):
+def html_subpalettes(hex_color, palette, amount):
     subpalettes = generate_subpalettes(palette, amount)
     page = f"<div class='container'>"
     id_counter = 0
