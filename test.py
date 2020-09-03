@@ -9,7 +9,7 @@ AMOUNT = 0
 
 HUE_Opts = {"LOW": 0.025, "MEDIUM": 0.05, "HIGH": 0.075}
 SAT_Opts = {"LOW": 0.01, "MEDIUM": 0.1, "HIGH": 0.2}
-LUM_Opts = {"LOW": 0.01, "MEDIUM": 0.05, "HIGH": 0.1}
+LUM_Opts = {"LOW": 0.01, "MEDIUM": 0.05, "HIGH": 0.09}
 
 HUE_VARIANCE = HUE_Opts["MEDIUM"]
 SATURATION_VARIANCE = SAT_Opts["MEDIUM"]
@@ -49,7 +49,7 @@ def html_form(hex, hue, sat, lum, is_sub=False, amount=0):
     table += "</select></td>"
 
     if is_sub:
-        table += f"<td><label for='Number of Palettes'>Number of Palettes:</label><input type='number' min='0' max='6' value={amount} id='amount' name='amount'></td>"
+        table += f"<td><label for='Number of Palettes'>Number of Palettes:</label><input type='number' min='0' value={amount} id='amount' name='amount'></td>"
     table += "<td><input class='submit_button' type='submit' value='Submit'></td>"
     table += "</form></tr>"
     table += "</table>"
@@ -134,7 +134,7 @@ def palette_index():
     return page
 
 
-@app.route("/sub/")
+@app.route("/oldsub/")
 def subpalette_index():
     if request.args.get("hex"):
         hex_color = request.args.get("hex")
@@ -160,18 +160,72 @@ def subpalette_index():
     page = html_include_js()
     page += html_include_css()
 
-    page += "<body>"
+    page += f"<body style='background-color: {hex_color};'>"
 
     # page += html_palette(hex_color, hue, saturation, luminance)
 
     ## generate subpalettes
     palette = generate_palette(hex_color, hue, saturation, luminance)
-    page += html_subpalettes(palette, amount)
+    page += new_html_subpalettes(palette, amount)
     page += html_form(hex_color, hue, saturation, luminance, True, amount)
     page += "</body>"
 
     return page
 
+@app.route("/sub/")
+def new_subpalette_index():
+    if request.args.get("hex"):
+        hex_color = request.args.get("hex")
+    else:
+        hex_color = "#ff0000"
+    if request.args.get("hue"):
+        hue = float(request.args.get("hue"))
+    else:
+        hue = HUE_VARIANCE
+    if request.args.get("saturation"):
+        saturation = float(request.args.get("saturation"))
+    else:
+        saturation = SATURATION_VARIANCE
+    if request.args.get("luminance"):
+        luminance = float(request.args.get("luminance"))
+    else:
+        luminance = LUMINANCE_VARIANCE
+    if request.args.get("amount"):
+        amount = int(request.args.get("amount"))
+    else:
+        amount = AMOUNT
+
+    page =  "<!DOCTYPE html>"
+    page += "<html lang='en'>"
+    page += "<head>"
+    page += "<meta charset='utf-8'>"
+    page += "<title>Subpalette Generator</title>"
+    page += "<link rel='stylesheet' href='/static/subpalettes.css'>"
+    page += "</head>"
+    page += f"<body style='background-color: {hex_color};'>"
+    page += html_include_js()
+
+    ## generate subpalettes
+    palette = generate_palette(hex_color, hue, saturation, luminance)
+    page += new_html_subpalettes(hex_color, palette, amount)
+    page += html_form(hex_color, hue, saturation, luminance, True, amount)
+    page += "</body>"
+    page += "</html>"
+
+    return page
+
+def new_html_subpalettes(hex_color, palette, amount):
+    subpalettes = generate_subpalettes(palette, amount)
+    page = f"<div class='container'>"
+    id_counter = 0
+    for subpalette in subpalettes:
+        page += "<div class='subpalette resize'>"
+        for color in subpalette:
+            page += f"<div id='{id_counter}' class='color' onClick='copycell({id_counter});' style='background-color: {color};'><span>{color}</span></div>"
+            id_counter += 1
+        page += "</div>"
+    page += "</div>"
+    return page
 
 def rotate_hue(_hue, _diff):
     hue = _hue + _diff
